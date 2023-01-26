@@ -1,6 +1,33 @@
 import fetch from 'node-fetch'
+import nodemailer from 'nodemailer'
 
 const results = []
+
+// function to send email
+const sendEmail = (balance) => {
+    const transporter = nodemailer.createTransport({
+        service: 'gmail',
+        auth: {
+            user: 'your-email@gmail.com',
+            pass: 'your-password'
+        }
+    });
+
+    const mailOptions = {
+        from: 'your-email@gmail.com',
+        to: 'recipient-email@gmail.com',
+        subject: 'ETH balance alert',
+        text: `The ETH balance for the address has dropped below 0.1 ETH. Current balance: ${balance} ETH`
+    };
+
+    transporter.sendMail(mailOptions, function (error, info) {
+        if (error) {
+            console.log(error);
+        } else {
+            console.log('Email sent: ' + info.response);
+        }
+    });
+}
 
 function checkBalance() {
     const startTime = Date.now()
@@ -39,6 +66,9 @@ function checkBalance() {
             const resultInDecimal = parseInt(resultInHex, 16);
             const resultInETH = resultInDecimal / Math.pow(10, 18);
             console.log('The address holds ' + resultInETH + ' ETH \n');
+            if (resultInETH < 0.1) {
+                sendEmail(resultInETH);
+            }
         })
         .catch(error => console.error(error));
 }
